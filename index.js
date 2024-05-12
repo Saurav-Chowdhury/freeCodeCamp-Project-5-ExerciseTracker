@@ -3,29 +3,21 @@ const app = express()
 const cors = require('cors')
 require('dotenv').config();
 
-const mongoose=require('mongoose');
+const {dbCon}=require('./utility/connection');
+const userRouter=require('./routes/user');
+
+
 const bodyParser=require('body-parser');
-const schema=mongoose.Schema;
 
-app.use(bodyParser.json())
 
-try{
-  mongoose.connect(process.env.MONGO_URI);
-  console.log('Connected to DB');
-}catch(err){
-console.log(err);
-}
+app.use(express.urlencoded())
+dbCon()
 
-//UserSchema
 
-const userSchema=new schema({
-  username: {
-    type: String,
-    required: true
-  }
-})
 
-const User=mongoose.model('Users',userSchema)
+
+
+//const Exercise=mongoose.model('Exercise',ExerciseSchema)
 
 
 app.use(cors())
@@ -37,28 +29,16 @@ app.get('/', (req, res) => {
 
 //solution
 
-app.post('/api/users',async (req,res)=>{
-  let username=req.body.username;
 
-  const userObj=new User({
-    username
-  });
 
-  const data=await userObj.save();
-  res.json({
-    username: data.username,
-    _id: data._id
-  })
-})
+app.use('/api/users',userRouter);
 
-app.get('/api/users',async (req,res)=>{
-  const data=await User.find({},{username: true, _id: true})
-  res.json(data)
+app.use('/api/users/:_id/exercises',userRouter)
 
-})
+app.use('/api/users/:_id/logs',userRouter)
+
 
 //
-
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
